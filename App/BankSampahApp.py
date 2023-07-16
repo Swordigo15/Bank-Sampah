@@ -19,8 +19,12 @@ class App(customtkinter.CTk):
         #! UI #############################################################################################################################
 
         # configure window
+        width= self.winfo_screenwidth()               
+        height= self.winfo_screenheight()
         self.title("Bank Sampah")
-        self.geometry(f"{1100}x{580}")
+        self.geometry(f"{width}x{height}+{0}+{0}")
+        # self.state("zoomed")
+        # self.attributes('-fullscreen', True)
 
         # configure grid layout (4x4)
         self.grid_columnconfigure((1, 2), weight=1)
@@ -129,7 +133,7 @@ class App(customtkinter.CTk):
             self.file = open("Data.txt", "rb")
             self.P_dataList = pickle.load(self.file)
             self.file.close()
-            print(self.P_dataList)
+            # print(self.P_dataList)
         else:
             self.file = open("Data.txt", "wb")
             pickle.dump(self.P_dataList, self.file)
@@ -165,7 +169,7 @@ class App(customtkinter.CTk):
                 
                 # self.currDataList = self.P_dataList[i] # Current Data List
 
-        print(self.P_dataList) # Each person Data
+        # print(self.P_dataList) # Each person Data
 
         # Save data
         self.file = open("Data.txt", "wb")
@@ -176,11 +180,19 @@ class App(customtkinter.CTk):
 
         # each mData += each trash data
         for key in self.currMData.keys():
-            self.currMData[key] += self.trashTotal[list(self.currMData.keys()).index(key)]
+            i = list(self.currMData.keys()).index(key)
+            if i == 0:
+                self.currMData[key] += self.total
+            else:
+                self.currMData[key] += self.trashTotal[i-1]
+
+        # print("self.currMData :\n", self.currMData)
 
         # save mData > this_yData[now.month] > data[now.year] 
-        self.currYData[self.mStr] = self.currMData
-        self.DataDict[self.yStr] = self.currYData
+        self.DataDict[self.yStr][self.mStr] = self.currMData
+
+        print("self.DataDict[self.yStr][self.mStr] :\n", self.DataDict[self.yStr][self.mStr])
+        print("self.DataDict :\n", self.DataDict)
 
         self.file = open("Data Sampah.txt", "wb")
         pickle.dump(self.DataDict, self.file)
@@ -318,8 +330,12 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         super().__init__(master=master)
 
         # configure window
+        width= self.winfo_screenwidth()               
+        height= self.winfo_screenheight()
         self.title("Bank Sampah")
-        self.geometry(f"{1100}x{580}")
+        self.geometry(f"{width}x{height}+{0}+{0}")
+        # self.state("zoomed")
+        # self.attributes('-fullscreen', True)
 
         # configure grid layout (4x4)
         self.grid_columnconfigure(0, weight=1)
@@ -336,19 +352,13 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         self.tabview.tab("Bulanan").grid_columnconfigure(0, weight=1)
         self.tabview.tab("Perorang").grid_rowconfigure(0, weight=1)
         self.tabview.tab("Bulanan").grid_rowconfigure(0, weight=1)
-        
-
-        self.tableFrameP = customtkinter.CTkScrollableFrame(self.tabview.tab("Perorang"))
-        self.tableFrameP.grid(row=0, column=0, sticky="news")
-
-        self.tableFrameB = customtkinter.CTkScrollableFrame(self.tabview.tab("Bulanan"))
-        self.tableFrameB.grid(row=0, column=0, sticky="news")
 
         self.names = ["Parto", "Maria", "Mulyadi", "Siska", "Hestreni",
                     "Alex", "Ari", "Murni", "Rendi", "Atik", 
                     "Dinar", "Harti", "Heru", "Diah", "Astutiek", 
                     "Muchtar", "Elo"]
 
+        #! Table Data #############################################################################################################################
         # Load
         # Load person Data
         self.P_dataList = [[0 for i in range(12)] for j in range(17)]
@@ -357,53 +367,102 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
 
         if os.stat("Data.txt").st_size != 0:
             self.file = open("Data.txt", "rb")
-            self.P_dataList = pickle.load(self.file)
+            self.P_dataLoad = pickle.load(self.file)
             self.file.close()
 
         # Load month Data
         if os.stat("Data Sampah.txt").st_size != 0:
             self.file = open("Data Sampah.txt", "rb")
+            self.dataDict = pickle.load(self.file)
             self.file.close()
 
-        #Create table data
-        totalRows = 12
-        totalCols = 17
+
         self.List = [["No.", "Nama", "Tabungan", "BP", "GP", 
                         "K", "D", "KK", "KH",
                         "KB", "G", "BK", "MJ"]]
-        self.data = [[0 for i in range(totalRows+1)] for j in range(totalCols)]
+        totalRows = [12, 11]
+        totalCols = [17, 12]
 
-        self.List = self.List + self.data
-        for i in range(17): self.List[i+1][0] = i+1
+
+        # Create table person data
+        self.P_data = [[0 for i in range(totalRows[0]+1)] for j in range(totalCols[0])]
+
+        self.P_dataList = self.List + self.P_data
+        # print(self.P_dataList)
+        for i in range(17): self.P_dataList[i+1][0] = i+1
+        # print(self.P_dataList)
 
         for i in range(17):
             for j in range(12):
-                self.List[i+1][j+1] = self.P_dataList[i][j]
+                self.P_dataList[i+1][j+1] = self.P_dataLoad[i][j]
 
+        # print("Person :\n", self.P_dataList)
+
+        # create table monthly data
+        self.Month = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+        self.M_data = [[0 for i in range(totalRows[1]+1)] for j in range(totalCols[1])]
+        self.M_dataList = self.List + self.M_data
+
+        self.M_dataList[0][1] = "Bulan"
+        self.M_dataList[0][2] = "Uang"
+
+        for y in self.dataDict.keys():
+            # print(self.dataDict[y])
+            self.currDataY = self.dataDict[y]
+            for i in range(totalRows[1]):
+                self.currDataM = self.currDataY[i+1]
+                for key in self.currDataM.keys():
+                    j = list(self.currDataM.keys()).index(key)
+                    self.M_dataList[i+1][j+1] = self.currDataM[key]
+
+        for i in range(totalCols[1]) : 
+            self.M_dataList[i+1][0] = i+1
+            self.M_dataList[i+1][1] = self.Month[i]
+
+        # print("Month :\n", self.M_dataList)
+
+        #! create table UI #############################################################################################################################
         #! Tabel Perorangan
-        # create table
-        self.tableP = CTkTable(self.tableFrameP, row=totalCols+1, column=totalRows+1, values=self.List, corner_radius=0)
+        self.tableFrameP = customtkinter.CTkScrollableFrame(self.tabview.tab("Perorang"))
+        self.tableFrameP.grid(row=0, column=0, sticky="news")
+
+        self.tableP = CTkTable(self.tableFrameP, row=totalCols[0]+1, column=totalRows[0]+1, values=self.P_dataList, corner_radius=0)
         self.tableP.grid(row=0, column=0)
 
+        for i in range(18):
+            self.tableP.edit_row(i, width=95)
+
         #! Tabel Bulanan
-        self.tableB = CTkTable(self.tableFrameB, row=totalCols+1, column=totalRows+1, values=self.List, corner_radius=0)
-        self.tableB.grid(row=0, column=0)
+        self.tableFrameB = customtkinter.CTkScrollableFrame(self.tabview.tab("Bulanan"))
+        self.tableFrameB.grid(row=0, column=0, sticky="news")
+
+        self.dataKey = [list(self.dataDict.keys())]
+        self.yFrame = [customtkinter.CTkFrame(self.tableFrameB) for i in range(len(self.dataDict))]
+        self.yLabel = [customtkinter.CTkLabel(self.yFrame[i], text=self.dataKey[i], font=customtkinter.CTkFont(size=30, weight="bold")) 
+                        for i in range(len(self.dataDict))]
+        self.tableB = [CTkTable(self.yFrame[i], row=totalCols[1]+1, column=totalRows[1]+1, 
+                                values=self.M_dataList, corner_radius=0) 
+                                for i in range(len(self.dataDict))]
+
+        for key in self.dataDict.keys():
+            for i in range(13):
+                self.tableB[list(self.dataDict.keys()).index(key)].edit_row(i, width=100)
+
+        for key in self.dataDict.keys():
+            i = list(self.dataDict.keys()).index(key)
+            self.yFrame[i].grid(row=0, column=0, padx=5, pady=5)
+            self.yLabel[i].grid(row=0, column=0, padx=20, sticky="w")
+            self.tableB[i].grid(row=1, column=0)
 
         self.lift()
-        self.attributes('-topmost',True)
-        self.after_idle(self.attributes,'-topmost',False)
+        self.attributes('-topmost', True)
+        self.after_idle(self.attributes,'-topmost', False)
 
-    #! Button Function #############################################################################################################################
+    #! Function ####################################################################################################################################
 
-    def InputWindow(self):
-        print("Input Window")
-
-    def InputHistoryWindow(self):
-        print("Input History Window")
-        HistoryWindow(self)
-
-    def O_DatabaseWindow(self):
-        print("Orang Database Window")
+    def updateTable(self):
+        pass
 
 if __name__ == "__main__":
     app = App()
