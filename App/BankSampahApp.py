@@ -1,3 +1,4 @@
+from tkinter import messagebox
 import customtkinter
 from CTkTable import *
 
@@ -114,94 +115,97 @@ class App(customtkinter.CTk):
     #! Input Data Func #############################################################################################################################
 
     def InputData(self):
-        #! PERSON DATA #############################################################################################################################
-        self.P_dataList = {}
+        userName = self.nameEntry.get().upper()
+        if userName != "":
+            #! PERSON DATA #############################################################################################################################
+            self.P_dataList = {}
 
-        # Load
-        if os.stat("Data.txt").st_size != 0:
-            self.file = open("Data.txt", "rb")
-            self.P_dataList = pickle.load(self.file)
+            # Load
+            if os.stat("Data.txt").st_size != 0:
+                self.file = open("Data.txt", "rb")
+                self.P_dataList = pickle.load(self.file)
+                self.file.close()
+                print(self.P_dataList)
+            else:
+                self.file = open("Data.txt", "wb")
+                pickle.dump(self.P_dataList, self.file)
+                self.file.close()
+
+            #! MONTH DATA ##############################################################################################################################
+
+            # Load
+            # laod year > month > data to mData
+            self.file = open("Data Sampah.txt", "rb")
+            self.DataDict = pickle.load(self.file)
             self.file.close()
-            print(self.P_dataList)
-        else:
+
+            now = datetime.now()
+            yStr = int(now.strftime("%Y"))
+            mStr = int(now.strftime("%m"))
+            dStr = int(now.strftime("%d"))
+            
+            inputDataList = [self.total]
+            inputDataList += [self.trashTotal[i] for i in range(11)]
+
+            #! Person Recap Input #############################################################################################################################
+
+            print("Person Total : ", self.total)
+            if self.P_dataList.get(userName) == None:                   # if username not exist
+                self.P_dataList[userName] = [0] * 12                    # add new list to the P_dataList with username as key
+
+            currDataList = [(self.P_dataList[userName][i] + inputDataList[i]) for i in range(12)]
+            self.P_dataList[userName] = currDataList
+
+            print("\nself.P_dataList :\n", self.P_dataList)
+
+            # Save data
             self.file = open("Data.txt", "wb")
             pickle.dump(self.P_dataList, self.file)
             self.file.close()
+            currDataList.clear()
 
-        #! MONTH DATA ##############################################################################################################################
+            #! Monthly Recap Input #############################################################################################################################
 
-        # Load
-        # laod year > month > data to mData
-        self.file = open("Data Sampah.txt", "rb")
-        self.DataDict = pickle.load(self.file)
-        self.file.close()
+            currDataList = [(self.DataDict[yStr][mStr][i] + inputDataList[i]) for i in range(12)]
+            self.DataDict[yStr][mStr] = currDataList
 
-        now = datetime.now()
-        yStr = int(now.strftime("%Y"))
-        mStr = int(now.strftime("%m"))
-        dStr = int(now.strftime("%d"))
-        
-        inputDataList = [self.total]
-        inputDataList += [self.trashTotal[i] for i in range(11)]
+            print("self.DataDict :\n", self.DataDict)
 
-        #! Person Recap Input #############################################################################################################################
-
-        print("Person Total : ", self.total)
-        userName = self.nameEntry.get().upper()
-        if self.P_dataList.get(userName) == None:                   # if username not exist
-            self.P_dataList[userName] = [0] * 12                    # add new list to the P_dataList with username as key
-
-        currDataList = [(self.P_dataList[userName][i] + inputDataList[i]) for i in range(12)]
-        self.P_dataList[userName] = currDataList
-
-        print("\nself.P_dataList :\n", self.P_dataList)
-
-        # Save data
-        self.file = open("Data.txt", "wb")
-        pickle.dump(self.P_dataList, self.file)
-        self.file.close()
-        currDataList.clear()
-
-        #! Monthly Recap Input #############################################################################################################################
-
-        currDataList = [(self.DataDict[yStr][mStr][i] + inputDataList[i]) for i in range(12)]
-        self.DataDict[yStr][mStr] = currDataList
-
-        print("self.DataDict :\n", self.DataDict)
-
-        self.file = open("Data Sampah.txt", "wb")
-        pickle.dump(self.DataDict, self.file)
-        self.file.close()
-
-        #! History Input #############################################################################################################################
-        
-        self.HistoryList = []
-
-        if os.stat("Data.txt").st_size != 0:
-            self.file = open("Riwayat.txt", "rb")
-            self.HistoryList = pickle.load(self.file)
+            self.file = open("Data Sampah.txt", "wb")
+            pickle.dump(self.DataDict, self.file)
             self.file.close()
 
-        currHistoryText = "- {}/{}/{} {} {} BP:{}, GP:{}, K:{}, D:{}, KK:{}, KH:{}, KB:{}, G:{}, BK:{}, MJ:{}, L:{}".format(
-        dStr, mStr, yStr, userName, self.total, self.trashTotal[0], self.trashTotal[1], self.trashTotal[2], self.trashTotal[3],
-                                        self.trashTotal[4], self.trashTotal[5], self.trashTotal[6], self.trashTotal[7],
-                                        self.trashTotal[8], self.trashTotal[9], self.trashTotal[10])
-        print("currHistoryText :\n", currHistoryText)
+            #! History Input #############################################################################################################################
+            
+            self.HistoryList = []
 
-        self.HistoryList.append(currHistoryText)
-        print("HistoryList :\n", self.HistoryList)
+            if os.stat("Data.txt").st_size != 0:
+                self.file = open("Riwayat.txt", "rb")
+                self.HistoryList = pickle.load(self.file)
+                self.file.close()
 
-        self.file = open("Riwayat.txt", "wb")
-        pickle.dump(self.HistoryList, self.file)
-        self.file.close()
+            currHistoryText = "- {}/{}/{} {} {} BP:{}, GP:{}, K:{}, D:{}, KK:{}, KH:{}, KB:{}, G:{}, BK:{}, MJ:{}, L:{}".format(
+            dStr, mStr, yStr, userName, self.total, self.trashTotal[0], self.trashTotal[1], self.trashTotal[2], self.trashTotal[3],
+                                            self.trashTotal[4], self.trashTotal[5], self.trashTotal[6], self.trashTotal[7],
+                                            self.trashTotal[8], self.trashTotal[9], self.trashTotal[10])
+            print("currHistoryText :\n", currHistoryText)
 
-        # Updating table
-        if self.DatabaseWindowVar != None:
-            self.DatabaseWindowVar.updateTable()
+            self.HistoryList.append(currHistoryText)
+            print("HistoryList :\n", self.HistoryList)
 
-        self.nameEntry.delete(0, customtkinter.END)
-        for i in range(11):
-            self.S_Entry_list[i].delete(0, customtkinter.END)
+            self.file = open("Riwayat.txt", "wb")
+            pickle.dump(self.HistoryList, self.file)
+            self.file.close()
+
+            # Updating table
+            if self.DatabaseWindowVar != None:
+                self.DatabaseWindowVar.updateTable()
+
+            self.nameEntry.delete(0, customtkinter.END)
+            for i in range(11):
+                self.S_Entry_list[i].delete(0, customtkinter.END)
+        else :
+            messagebox.showwarning("Warning", "Tolong Masukkan Nama!")
 
     #! Change Total Label Text Func #############################################################################################################
 
@@ -210,7 +214,7 @@ class App(customtkinter.CTk):
         # StringVar to float
         # amount of each trash
         for i in range(11):
-            self.trashPrice[i] = float(0 if self.varPList[i].get() == '' else self.varPList[i].get())
+            self.trashPrice[i] = float(0 if self.varPList[i].get() == '' else self.varPList[i].get()) / float(0 if self.varAList[i].get() == '' else self.varAList[i].get())
             self.trashTotal[i] = float(0 if self.varList[i].get() == '' else self.varList[i].get())
 
             # The money of each trash
