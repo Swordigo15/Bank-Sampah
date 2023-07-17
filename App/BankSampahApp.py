@@ -16,13 +16,14 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
+        self.DatabaseWindow = None
         #! UI #############################################################################################################################
 
         # configure window
         width= self.winfo_screenwidth()               
         height= self.winfo_screenheight()
         self.title("Bank Sampah")
-        self.geometry(f"{width}x{height}+{0}+{0}")
+        self.geometry(f"{width}x{height}+{-10}+{-5}")
         # self.state("zoomed")
         # self.attributes('-fullscreen', True)
 
@@ -52,62 +53,45 @@ class App(customtkinter.CTk):
         self.nameEntry = customtkinter.CTkEntry(self, placeholder_text="Masukkan Nama...", font=customtkinter.CTkFont(size=30))
         self.nameEntry.grid(row=1, column=1, columnspan=2, padx=20, pady=20, sticky="new")
 
+        self.trashType = ["Botol Plastik", "Gelas Plastik", "Kardus",
+                        "Duplex", "Kertas Koran", "Kertas HVS",
+                        "Kertas Buram", "Galon", "Botol Kaca",
+                        "Minyak Jenlatah", "Lainnya"]
+        
         # Sampah Grid
         self.gridFrame1 = customtkinter.CTkFrame(self)
         self.gridFrame1.grid(row=2, column=1, padx=(20,5), pady=(0,20), sticky="ew")
         self.gridFrame1.grid_columnconfigure(0, weight=1)
 
-        self.trashType = ["Botol Plastik (2.000/kg)", "Gelas Plastik (2.000/kg)", "Kardus (1.200/kg)",
-                        "Duplex (800/kg)", "Kertas Koran (4.000 /kg)", "Kertas HVS (2.500 /kg)",
-                        "Kertas Buram (2.200 /kg)", "Galon (5.000/buah)", "Botol Kaca (100/kg)",
-                        "Minyak Jenlatah (5.000 /1,5 liter)"]
-        
-        self.unit = ["Kg", "Buah", "Liter"]
-
-        self.varList = [customtkinter.StringVar() for i in range(10)]
-        self.S_Label_list1 = [customtkinter.CTkLabel(self.gridFrame1, font=customtkinter.CTkFont(size=15)) for i in range(5)]
-        self.S_Entry_list1 = [customtkinter.CTkEntry(self.gridFrame1, textvariable=self.varList[i]) for i in range(5)]
-        self.S_Label_0list1 = [customtkinter.CTkLabel(self.gridFrame1, font=customtkinter.CTkFont(size=15)) for i in range(5)]
-
-        for i in range(5):
-            self.S_Label_list1[i].configure(text=self.trashType[i])
-            self.S_Label_list1[i].grid(row=i, column=0, padx=(20,0), pady=10, sticky="new")
-            self.S_Entry_list1[i].grid(row=i, column=1, padx=(20,0), pady=10, sticky="new")
-            self.S_Label_0list1[i].configure(text=self.unit[0])
-            self.S_Label_0list1[i].grid(row=i, column=2, padx=5, pady=10, sticky="new")
-
         self.gridFrame2 = customtkinter.CTkFrame(self)
         self.gridFrame2.grid(row=2, column=2, padx=(5,20), pady=(0,20), sticky="ew")
         self.gridFrame2.grid_columnconfigure(0, weight=1)
 
-        self.S_Label_list2 = [customtkinter.CTkLabel(self.gridFrame2, font=customtkinter.CTkFont(size=15)) for i in range(5)]
-        self.S_Entry_list2 = [customtkinter.CTkEntry(self.gridFrame2, textvariable=self.varList[i+5]) for i in range(5)]
-        self.S_Label_0list2 = [customtkinter.CTkLabel(self.gridFrame2, font=customtkinter.CTkFont(size=15)) for i in range(5)]
+        self.varPList = [customtkinter.StringVar() for i in range(11)]
+        self.varList = [customtkinter.StringVar() for i in range(11)]
 
-        for i in range(5):
-            self.S_Label_list2[i].configure(text=self.trashType[i+5])
-            self.S_Label_list2[i].grid(row=i, column=0, padx=(20,0), pady=10, sticky="new")
-            self.S_Entry_list2[i].grid(row=i, column=1, padx=(20,0), pady=10, sticky="new")
-            if i == 2:
-                self.S_Label_0list2[i].configure(text=self.unit[1])
-            elif i ==  4:
-                self.S_Label_0list2[i].configure(text=self.unit[2])
-            else:
-                self.S_Label_0list2[i].configure(text=self.unit[0])
-            self.S_Label_0list2[i].grid(row=i, column=2, padx=5, pady=10, sticky="new")
+        self.S_Label_list = [customtkinter.CTkLabel(self.gridFrame1 if i < 5 else self.gridFrame2, font=customtkinter.CTkFont(size=15)) for i in range(11)]
+        self.S_Price_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varPList[i]) for i in range(11)]
+        self.S_Entry_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varList[i]) for i in range(11)]
 
-        for i in range(10):
+        for i in range(11):
+            self.S_Label_list[i].configure(text=self.trashType[i])
+            self.S_Label_list[i].grid(row=i if i < 5 else i-5, column=0, padx=(20,0), pady=10, sticky="new")
+            self.S_Price_list[i].grid(row=i if i < 5 else i-5, column=1, padx=(10,0), pady=10, sticky="new")
+            self.S_Entry_list[i].grid(row=i if i < 5 else i-5, column=2, padx=10, pady=10, sticky="new")
+
+        for i in range(11):
+            self.varPList[i].trace('w', self.changeTotal)
             self.varList[i].trace('w', self.changeTotal)
 
         #! Money ##########################################################################################################################
 
+        # Price for each trash
+        self.trashPrice = [0] * 11
         # Total foreach trash
-        self.trashTotal = [0] * 10
-
+        self.trashTotal = [0] * 11
         # Total money for each trash
-        self.price = [2000, 2000, 1200, 800, 4000, 2500, 2200, 5000, 100, 5000]
-        self.trashMoney = [0] * 10
-        
+        self.trashMoney = [0] * 11
 
         self.totalLabel = customtkinter.CTkLabel(self, text="Total : Rp. 0", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.totalLabel.grid(row=3, column=1, padx=20, pady=(0,20), sticky="w")
@@ -115,25 +99,14 @@ class App(customtkinter.CTk):
         self.InputBtn.grid(row=4, column=2, padx=20, sticky="e")
 
         #! PERSON DATA #############################################################################################################################
-
-        self.names = ["Parto", "Maria", "Mulyadi", "Siska", "Hestreni",
-                    "Alex", "Ari", "Murni", "Rendi", "Atik", 
-                    "Dinar", "Harti", "Heru", "Diah", "Astutiek", 
-                    "Muchtar", "Elo"]
-
-        self.P_dataList = [[0 for i in range(12)] for j in range(17)]
-
-        self.totalPerson = 17
-
-        for i in range(self.totalPerson):
-            self.P_dataList[i][1] = self.names[i]
+        self.P_dataList = {}
 
         # Load
         if os.stat("Data.txt").st_size != 0:
             self.file = open("Data.txt", "rb")
             self.P_dataList = pickle.load(self.file)
             self.file.close()
-            # print(self.P_dataList)
+            print(self.P_dataList)
         else:
             self.file = open("Data.txt", "wb")
             pickle.dump(self.P_dataList, self.file)
@@ -143,7 +116,6 @@ class App(customtkinter.CTk):
 
         # Load
         # laod year > month > data to mData
-        
         self.file = open("Data Sampah.txt", "rb")
         self.DataDict = pickle.load(self.file)
         self.file.close()
@@ -152,86 +124,62 @@ class App(customtkinter.CTk):
         self.yStr = int(now.strftime("%Y"))
         self.mStr = int(now.strftime("%m"))
 
-        self.currYData = self.DataDict[self.yStr]
-        self.currMData = self.currYData[self.mStr]
-
     #! Input Data Func #############################################################################################################################
 
     def InputData(self):
-        #! Person Recap
-        # P_dataList = [index (0-9) trashTotal[10], index(10) totaMoney, index(11) userName]
+        inputDataList = [self.total]
+        inputDataList += [self.trashTotal[i] for i in range(11)]
 
-        for i in range(self.totalPerson):
-            if self.P_dataList[i][0] == self.nameEntry.get():    # if the name in data is the same as userName 
-                self.P_dataList[i][1] += self.total               # Add total money to data
-                for j in range(2,12):
-                    self.P_dataList[i][j] += self.trashTotal[j-2]   # Add each trash data to data
-                
-                # self.currDataList = self.P_dataList[i] # Current Data List
+        #! Person Recap Input
+        print("Person Total : ", self.total)
+        userName = self.nameEntry.get().upper()
+        if self.P_dataList.get(userName) == None:                   # if username not exist
+            self.P_dataList[userName] = [0] * 12                    # add new list to the P_dataList with username as key
 
-        # print(self.P_dataList) # Each person Data
+        currDataList = [(self.P_dataList[userName][i] + inputDataList[i]) for i in range(12)]
+        self.P_dataList[userName] = currDataList
+
+        print("\nself.P_dataList :\n", self.P_dataList)
 
         # Save data
         self.file = open("Data.txt", "wb")
         pickle.dump(self.P_dataList, self.file)
         self.file.close()
+        currDataList.clear()
 
-        #! Monthly Recap
+        #! Monthly Recap Input
+        currDataList = [(self.DataDict[self.yStr][self.mStr][i] + inputDataList[i]) for i in range(12)]
+        self.DataDict[self.yStr][self.mStr] = currDataList
 
-        # each mData += each trash data
-        for key in self.currMData.keys():
-            i = list(self.currMData.keys()).index(key)
-            if i == 0:
-                self.currMData[key] += self.total
-            else:
-                self.currMData[key] += self.trashTotal[i-1]
-
-        # print("self.currMData :\n", self.currMData)
-
-        # save mData > this_yData[now.month] > data[now.year] 
-        self.DataDict[self.yStr][self.mStr] = self.currMData
-
-        print("self.DataDict[self.yStr][self.mStr] :\n", self.DataDict[self.yStr][self.mStr])
         print("self.DataDict :\n", self.DataDict)
 
         self.file = open("Data Sampah.txt", "wb")
         pickle.dump(self.DataDict, self.file)
         self.file.close()
 
-        # History
-        # self.now = datetime.now()
-        # self.dateStr = self.now.strftime("%d/%m/%Y %H:%M:%S")
-        # self.HistoryText = [[" - " + self.dateStr + " " + self.nameEntry.get() + " Rp. " + str(self.total) + "\n\tBP: " + str(self.trashTotal[0]) + "; GP: " + str(self.trashTotal[1]) + "; K: " + str(self.trashTotal[2]) + "; D: " + str(self.trashTotal[3]) + "; KK: " + str(self.trashTotal[4]) + "\n\tKH: " + str(self.trashTotal[5]) + "; KB: " + str(self.trashTotal[6]) + "; G: " + str(self.trashTotal[7]) + "; BK: " + str(self.trashTotal[8]) + "; MJ: " + str(self.trashTotal[9]) + "\n"]]
-        
-        # self.file = open("History.txt", "ab")
-        # pickle.dump(self.HistoryText, self.file)
-        # self.file.close()
+        # Updating table
+        if self.DatabaseWindow != None:
+            self.DatabaseWindow.updateTable()
 
         self.nameEntry.delete(0, customtkinter.END)
-        for i in range(10):
-            if i > 4:
-                self.S_Entry_list2[i-5].delete(0, customtkinter.END)
-            else:
-                self.S_Entry_list1[i].delete(0, customtkinter.END)
+        for i in range(11):
+            self.S_Price_list[i].delete(0, customtkinter.END)
+            self.S_Entry_list[i].delete(0, customtkinter.END)
 
     #! Change Total Label Text Func #############################################################################################################
 
     def changeTotal(self, *args):
+        self.total = 0
         # StringVar to float
         # amount of each trash
-        for i in range(10):
+        for i in range(11):
+            self.trashPrice[i] = float(0 if self.varPList[i].get() == '' else self.varPList[i].get())
             self.trashTotal[i] = float(0 if self.varList[i].get() == '' else self.varList[i].get())
 
-        # The money of each trash
-        for i in range(10):
-            if i == 9:
-                self.trashMoney[i] = (self.trashTotal[i] / 1.5) * self.price[i]
-            else:
-                self.trashMoney[i] = self.trashTotal[i] * self.price[i]
+            # The money of each trash
+            self.trashMoney[i] = self.trashTotal[i] * self.trashPrice[i]
 
-        # Total money'
-        self.total = 0
-        for i in range(10):
+            # Total money'
             self.total += self.trashMoney[i]
 
         self.totalLabel.configure(text='')
@@ -248,7 +196,7 @@ class App(customtkinter.CTk):
 
     def O_DatabaseWindow(self):
         print("Orang Database Window")
-        self.ODsatabaseWindow = OrangDatabaseWindow(self)
+        self.DatabaseWindow = OrangDatabaseWindow(self)
 
 ##########################################################################################################!
 ########################################! HISTORY WINDOW #################################################!
@@ -330,12 +278,11 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         super().__init__(master=master)
 
         # configure window
-        width= self.winfo_screenwidth()               
-        height= self.winfo_screenheight()
         self.title("Bank Sampah")
-        self.geometry(f"{width}x{height}+{0}+{0}")
-        # self.state("zoomed")
-        # self.attributes('-fullscreen', True)
+        self.geometry(f"{1100}x{580}")
+        # width= self.winfo_screenwidth()               
+        # height= self.winfo_screenheight()
+        # self.geometry(f"{width}x{height}+{0}+{0}")
 
         # configure grid layout (4x4)
         self.grid_columnconfigure(0, weight=1)
@@ -349,21 +296,35 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         self.tabview.add("Perorang")
         self.tabview.add("Bulanan")
         self.tabview.tab("Perorang").grid_columnconfigure(0, weight=1)
-        self.tabview.tab("Bulanan").grid_columnconfigure(0, weight=1)
         self.tabview.tab("Perorang").grid_rowconfigure(0, weight=1)
+        self.tabview.tab("Bulanan").grid_columnconfigure(0, weight=1)
         self.tabview.tab("Bulanan").grid_rowconfigure(0, weight=1)
 
-        self.names = ["Parto", "Maria", "Mulyadi", "Siska", "Hestreni",
-                    "Alex", "Ari", "Murni", "Rendi", "Atik", 
-                    "Dinar", "Harti", "Heru", "Diah", "Astutiek", 
-                    "Muchtar", "Elo"]
+        self.updateTable()
 
+        self.lift()
+        self.attributes('-topmost', True)
+        self.after_idle(self.attributes,'-topmost', False)
+
+    #! Function ####################################################################################################################################
+
+    def updateTable(self):
         #! Table Data #############################################################################################################################
         # Load
         # Load person Data
-        self.P_dataList = [[0 for i in range(12)] for j in range(17)]
-        for i in range(17):
-            self.P_dataList[i][1] = self.names[i]
+        self.names = ["PARTO", "MARIA", "MULYADI", "SISKA", "HESTRENI",
+                "ALEX", "ARI", "MURNI", "RENDI", "ATIK", 
+                "DINAR", "HARTI", "HERU", "DIAH", "ASTUTIEK", 
+                "MUCHTAR", "ELO"]
+        
+        self.ListP = ["No.", "Nama", "Tabungan", 
+                        "BP", "GP", "K", "D",
+                        "KK", "KH", "KB", "G", 
+                        "BK", "MJ", "L"]
+        self.ListM = ["No.", "Bulan", "Tabungan", 
+                        "BP", "GP", "K", "D",
+                        "KK", "KH", "KB", "G", 
+                        "BK", "MJ", "L"]
 
         if os.stat("Data.txt").st_size != 0:
             self.file = open("Data.txt", "rb")
@@ -373,96 +334,82 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         # Load month Data
         if os.stat("Data Sampah.txt").st_size != 0:
             self.file = open("Data Sampah.txt", "rb")
-            self.dataDict = pickle.load(self.file)
+            self.B_dataLoad = pickle.load(self.file)
+            print("Recap Monthly :\n", self.B_dataLoad)
             self.file.close()
 
+        self.names = list(self.P_dataLoad.keys())
 
-        self.List = [["No.", "Nama", "Tabungan", "BP", "GP", 
-                        "K", "D", "KK", "KH",
-                        "KB", "G", "BK", "MJ"]]
-        totalRows = [12, 11]
-        totalCols = [17, 12]
+        #! 14 = no + nama + total + sampah[11]
 
+        self.totalPerson = len(self.names)
+        self.TableList_P = [self.ListP]
+        self.TableList_P += [[0]*14]*self.totalPerson
 
-        # Create table person data
-        self.P_data = [[0 for i in range(totalRows[0]+1)] for j in range(totalCols[0])]
+        for key in self.P_dataLoad.keys():
+            i = list(self.P_dataLoad.keys()).index(key)
+            l = [i+1, self.names[i]]
+            l += self.P_dataLoad[key]
+            self.TableList_P[i+1] = l
 
-        self.P_dataList = self.List + self.P_data
-        # print(self.P_dataList)
-        for i in range(17): self.P_dataList[i+1][0] = i+1
-        # print(self.P_dataList)
-
-        for i in range(17):
-            for j in range(12):
-                self.P_dataList[i+1][j+1] = self.P_dataLoad[i][j]
-
-        # print("Person :\n", self.P_dataList)
+        print("Person Table List : \n\n", self.TableList_P)
 
         # create table monthly data
-        self.Month = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-        self.M_data = [[0 for i in range(totalRows[1]+1)] for j in range(totalCols[1])]
-        self.M_dataList = self.List + self.M_data
+        self.Month = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", 
+                        "Agustus", "September", "Oktober", "November", "Desember"]
 
-        self.M_dataList[0][1] = "Bulan"
-        self.M_dataList[0][2] = "Uang"
+        self.TableList_B = [self.ListM]
+        self.TableList_B += [[0]*14]*12
 
-        for y in self.dataDict.keys():
-            # print(self.dataDict[y])
-            self.currDataY = self.dataDict[y]
-            for i in range(totalRows[1]):
-                self.currDataM = self.currDataY[i+1]
-                for key in self.currDataM.keys():
-                    j = list(self.currDataM.keys()).index(key)
-                    self.M_dataList[i+1][j+1] = self.currDataM[key]
+        now = datetime.now()
+        self.yStr = int(now.strftime("%Y"))
+        self.mStr = int(now.strftime("%m"))
 
-        for i in range(totalCols[1]) : 
-            self.M_dataList[i+1][0] = i+1
-            self.M_dataList[i+1][1] = self.Month[i]
+        self.curr_B_Data = self.B_dataLoad[self.yStr]
+        print(list(self.curr_B_Data.keys()))
+        for i in self.curr_B_Data.keys():
+            l = [i, self.Month[i-1]]
+            l += self.curr_B_Data[i]
+            self.TableList_B[i] = l
 
-        # print("Month :\n", self.M_dataList)
-
+        print("Month Table List : \n\n", self.TableList_B)
         #! create table UI #############################################################################################################################
         #! Tabel Perorangan
         self.tableFrameP = customtkinter.CTkScrollableFrame(self.tabview.tab("Perorang"))
         self.tableFrameP.grid(row=0, column=0, sticky="news")
 
-        self.tableP = CTkTable(self.tableFrameP, row=totalCols[0]+1, column=totalRows[0]+1, values=self.P_dataList, corner_radius=0)
+        self.tableP = CTkTable(self.tableFrameP, row=self.totalPerson+1, column=14, values=self.TableList_P, corner_radius=0)
         self.tableP.grid(row=0, column=0)
 
-        for i in range(18):
-            self.tableP.edit_row(i, width=95)
+        for i in range(14):
+            if i == 0:
+                self.tableP.edit_column(0, width=20)
+            elif i == 1 or i == 2:
+                continue
+            else:
+                self.tableP.edit_column(i, width=30)
 
         #! Tabel Bulanan
         self.tableFrameB = customtkinter.CTkScrollableFrame(self.tabview.tab("Bulanan"))
         self.tableFrameB.grid(row=0, column=0, sticky="news")
 
-        self.dataKey = [list(self.dataDict.keys())]
-        self.yFrame = [customtkinter.CTkFrame(self.tableFrameB) for i in range(len(self.dataDict))]
-        self.yLabel = [customtkinter.CTkLabel(self.yFrame[i], text=self.dataKey[i], font=customtkinter.CTkFont(size=30, weight="bold")) 
-                        for i in range(len(self.dataDict))]
-        self.tableB = [CTkTable(self.yFrame[i], row=totalCols[1]+1, column=totalRows[1]+1, 
-                                values=self.M_dataList, corner_radius=0) 
-                                for i in range(len(self.dataDict))]
+        year = list(self.B_dataLoad.keys())
+        self.yFrame = [customtkinter.CTkFrame(self.tableFrameB) for i in range(len(self.B_dataLoad))]
+        self.yLabel = [customtkinter.CTkLabel(self.yFrame[i], text=year[i], font=customtkinter.CTkFont(size=30, weight="bold")) for i in range(len(self.B_dataLoad))]
+        self.tableB = [CTkTable(self.yFrame[i], row=13, column=14, values=self.TableList_B, corner_radius=0) for i in range(len(self.B_dataLoad))]
 
-        for key in self.dataDict.keys():
-            for i in range(13):
-                self.tableB[list(self.dataDict.keys()).index(key)].edit_row(i, width=100)
-
-        for key in self.dataDict.keys():
-            i = list(self.dataDict.keys()).index(key)
-            self.yFrame[i].grid(row=0, column=0, padx=5, pady=5)
-            self.yLabel[i].grid(row=0, column=0, padx=20, sticky="w")
+        for i in range(len(self.B_dataLoad)):
+            self.yFrame[i].grid(row=i, column=0)
+            self.yLabel[i].grid(row=0, column=0)
             self.tableB[i].grid(row=1, column=0)
+            for j in range(14):
+                if j == 0:
+                    self.tableB[i].edit_column(0, width=20)
+                elif j == 1 or j == 2:
+                    continue
+                else:
+                    self.tableB[i].edit_column(j, width=30)
 
-        self.lift()
-        self.attributes('-topmost', True)
-        self.after_idle(self.attributes,'-topmost', False)
-
-    #! Function ####################################################################################################################################
-
-    def updateTable(self):
-        pass
 
 if __name__ == "__main__":
     app = App()
