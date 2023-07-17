@@ -16,7 +16,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        self.DatabaseWindow = None
+        self.DatabaseWindowVar = None
         #! UI #############################################################################################################################
 
         # configure window
@@ -44,7 +44,7 @@ class App(customtkinter.CTk):
         self.InputWindowBtn.configure(state="disabled")
         self.InputHistoryBtn = customtkinter.CTkButton(self.sidebar_frame, text="Riwayat Input", command=self.InputHistoryWindow)
         self.InputHistoryBtn.grid(row=2, column=0, padx=20, pady=10)
-        self.O_DatabaseBtn = customtkinter.CTkButton(self.sidebar_frame, text="Rekap Perorangan", command=self.O_DatabaseWindow)
+        self.O_DatabaseBtn = customtkinter.CTkButton(self.sidebar_frame, text="Rekap Perorangan", command=self.DatabaseWindow)
         self.O_DatabaseBtn.grid(row=3, column=0, padx=20, pady=10)
 
         # Name Entry
@@ -57,7 +57,9 @@ class App(customtkinter.CTk):
                         "Duplex", "Kertas Koran", "Kertas HVS",
                         "Kertas Buram", "Galon", "Botol Kaca",
                         "Minyak Jenlatah", "Lainnya"]
-        
+
+        self.prices = [2000, 2000, 1200, 800, 4000, 2500, 2200, 5000, 100, 5000, 2000]
+
         # Sampah Grid
         self.gridFrame1 = customtkinter.CTkFrame(self)
         self.gridFrame1.grid(row=2, column=1, padx=(20,5), pady=(0,20), sticky="ew")
@@ -68,27 +70,37 @@ class App(customtkinter.CTk):
         self.gridFrame2.grid_columnconfigure(0, weight=1)
 
         self.varPList = [customtkinter.StringVar() for i in range(11)]
+        self.varAList = [customtkinter.StringVar() for i in range(11)]
         self.varList = [customtkinter.StringVar() for i in range(11)]
 
         self.S_Label_list = [customtkinter.CTkLabel(self.gridFrame1 if i < 5 else self.gridFrame2, font=customtkinter.CTkFont(size=15)) for i in range(11)]
-        self.S_Price_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varPList[i]) for i in range(11)]
-        self.S_Entry_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varList[i]) for i in range(11)]
+        self.S_Label2_list = [customtkinter.CTkLabel(self.gridFrame1 if i < 5 else self.gridFrame2, text="Rp. ", font=customtkinter.CTkFont(size=15)) for i in range(11)]
+        self.S_Price_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varPList[i], width=100) for i in range(11)]
+        self.S_Label3_list = [customtkinter.CTkLabel(self.gridFrame1 if i < 5 else self.gridFrame2, text="/", font=customtkinter.CTkFont(size=15)) for i in range(11)]
+        self.S_Amount_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varAList[i], width=30) for i in range(11)]
+        self.S_Entry_list = [customtkinter.CTkEntry(self.gridFrame1 if i < 5 else self.gridFrame2, textvariable=self.varList[i], width=50) for i in range(11)]
 
         for i in range(11):
             self.S_Label_list[i].configure(text=self.trashType[i])
             self.S_Label_list[i].grid(row=i if i < 5 else i-5, column=0, padx=(20,0), pady=10, sticky="new")
-            self.S_Price_list[i].grid(row=i if i < 5 else i-5, column=1, padx=(10,0), pady=10, sticky="new")
-            self.S_Entry_list[i].grid(row=i if i < 5 else i-5, column=2, padx=10, pady=10, sticky="new")
+            self.S_Label2_list[i].grid(row=i if i < 5 else i-5, column=1, padx=(20,5), pady=10, sticky="new")
+            self.S_Price_list[i].insert(0, self.prices[i])
+            self.S_Price_list[i].grid(row=i if i < 5 else i-5, column=2, padx=(10,5), pady=10, sticky="new")
+            self.S_Label3_list[i].grid(row=i if i < 5 else i-5, column=3, padx=5, pady=10, sticky="new")
+            self.S_Amount_list[i].grid(row=i if i < 5 else i-5, column=4, padx=(5,5), pady=10, sticky="new")
+            self.S_Amount_list[i].insert(0, "1")
+            self.S_Entry_list[i].grid(row=i if i < 5 else i-5, column=5, padx=10, pady=10, sticky="new")
 
         for i in range(11):
             self.varPList[i].trace('w', self.changeTotal)
+            self.varAList[i].trace('w', self.changeTotal)
             self.varList[i].trace('w', self.changeTotal)
 
         #! Money ##########################################################################################################################
 
         # Price for each trash
         self.trashPrice = [0] * 11
-        # Total foreach trash
+        # Total for each trash
         self.trashTotal = [0] * 11
         # Total money for each trash
         self.trashMoney = [0] * 11
@@ -98,6 +110,10 @@ class App(customtkinter.CTk):
         self.InputBtn = customtkinter.CTkButton(self, text="INPUT", font=customtkinter.CTkFont(size=30, weight="bold"), command=self.InputData)
         self.InputBtn.grid(row=4, column=2, padx=20, sticky="e")
 
+
+    #! Input Data Func #############################################################################################################################
+
+    def InputData(self):
         #! PERSON DATA #############################################################################################################################
         self.P_dataList = {}
 
@@ -121,16 +137,15 @@ class App(customtkinter.CTk):
         self.file.close()
 
         now = datetime.now()
-        self.yStr = int(now.strftime("%Y"))
-        self.mStr = int(now.strftime("%m"))
-
-    #! Input Data Func #############################################################################################################################
-
-    def InputData(self):
+        yStr = int(now.strftime("%Y"))
+        mStr = int(now.strftime("%m"))
+        dStr = int(now.strftime("%d"))
+        
         inputDataList = [self.total]
         inputDataList += [self.trashTotal[i] for i in range(11)]
 
-        #! Person Recap Input
+        #! Person Recap Input #############################################################################################################################
+
         print("Person Total : ", self.total)
         userName = self.nameEntry.get().upper()
         if self.P_dataList.get(userName) == None:                   # if username not exist
@@ -147,9 +162,10 @@ class App(customtkinter.CTk):
         self.file.close()
         currDataList.clear()
 
-        #! Monthly Recap Input
-        currDataList = [(self.DataDict[self.yStr][self.mStr][i] + inputDataList[i]) for i in range(12)]
-        self.DataDict[self.yStr][self.mStr] = currDataList
+        #! Monthly Recap Input #############################################################################################################################
+
+        currDataList = [(self.DataDict[yStr][mStr][i] + inputDataList[i]) for i in range(12)]
+        self.DataDict[yStr][mStr] = currDataList
 
         print("self.DataDict :\n", self.DataDict)
 
@@ -157,13 +173,34 @@ class App(customtkinter.CTk):
         pickle.dump(self.DataDict, self.file)
         self.file.close()
 
+        #! History Input #############################################################################################################################
+        
+        self.HistoryList = []
+
+        if os.stat("Data.txt").st_size != 0:
+            self.file = open("Riwayat.txt", "rb")
+            self.HistoryList = pickle.load(self.file)
+            self.file.close()
+
+        currHistoryText = "- {}/{}/{} {} {} BP:{}, GP:{}, K:{}, D:{}, KK:{}, KH:{}, KB:{}, G:{}, BK:{}, MJ:{}, L:{}".format(
+        dStr, mStr, yStr, userName, self.total, self.trashTotal[0], self.trashTotal[1], self.trashTotal[2], self.trashTotal[3],
+                                        self.trashTotal[4], self.trashTotal[5], self.trashTotal[6], self.trashTotal[7],
+                                        self.trashTotal[8], self.trashTotal[9], self.trashTotal[10])
+        print("currHistoryText :\n", currHistoryText)
+
+        self.HistoryList.append(currHistoryText)
+        print("HistoryList :\n", self.HistoryList)
+
+        self.file = open("Riwayat.txt", "wb")
+        pickle.dump(self.HistoryList, self.file)
+        self.file.close()
+
         # Updating table
-        if self.DatabaseWindow != None:
-            self.DatabaseWindow.updateTable()
+        if self.DatabaseWindowVar != None:
+            self.DatabaseWindowVar.updateTable()
 
         self.nameEntry.delete(0, customtkinter.END)
         for i in range(11):
-            self.S_Price_list[i].delete(0, customtkinter.END)
             self.S_Entry_list[i].delete(0, customtkinter.END)
 
     #! Change Total Label Text Func #############################################################################################################
@@ -194,7 +231,7 @@ class App(customtkinter.CTk):
         print("Input History Window")
         self.HistoryWindow = HistoryWindow(self)
 
-    def O_DatabaseWindow(self):
+    def DatabaseWindow(self):
         print("Orang Database Window")
         self.DatabaseWindow = OrangDatabaseWindow(self)
 
@@ -211,41 +248,25 @@ class HistoryWindow(customtkinter.CTkToplevel):
         self.title("Bank Sampah")
         self.geometry(f"{1100}x{580}")
 
-        # configure grid layout (4x4)
-        self.grid_columnconfigure((1, 2), weight=1)
-        self.grid_rowconfigure((3, 4), weight=1)
-
-        # Tittle
-        self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, rowspan=5, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(5, weight=1)
-        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="BANK SAMPAH", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-
-        # Menu Button
-        self.InputWindowBtn = customtkinter.CTkButton(self.sidebar_frame, text="Input Sampah", command=self.InputWindow)
-        self.InputWindowBtn.grid(row=1, column=0, padx=20, pady=10)
-        self.InputHistoryBtn = customtkinter.CTkButton(self.sidebar_frame, text="Riwayat Input", command=self.InputHistoryWindow)
-        self.InputHistoryBtn.grid(row=2, column=0, padx=20, pady=10)
-        self.InputHistoryBtn.configure(state="disabled")
-        self.O_DatabaseBtn = customtkinter.CTkButton(self.sidebar_frame, text="Rekap Perorangan", command=self.O_DatabaseWindow)
-        self.O_DatabaseBtn.grid(row=3, column=0, padx=20, pady=10)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         self.HistoryTittle = customtkinter.CTkLabel(self, text="RIWAYAT", font=customtkinter.CTkFont(size=50, weight="bold"))
-        self.HistoryTittle.grid(row=0, column=1, columnspan=2, padx=20, pady=20, sticky="nsew")
+        self.HistoryTittle.grid(row=0, column=0, columnspan=2, padx=20, pady=20, sticky="nsew")
 
-        # self.file = open("History.txt", "rb")
-        # self.HistoryTexts = [[]]
-        # print(pickle.load(self.file))
-        # self.file.close()
+        self.HistoryList = []
 
-        # #! Pickle only load the first History
+        if os.stat("Data.txt").st_size != 0:
+            self.file = open("Riwayat.txt", "rb")
+            self.HistoryList = pickle.load(self.file)
+            self.file.close()
 
-        # self.textbox = customtkinter.CTkTextbox(self, width=250)
-        # self.textbox.grid(row=2, column=1, rowspan=3, columnspan=3, padx=20, pady=20, sticky="nsew")
-        # self.textbox.configure(state="normal")
-        # # self.textbox.insert("1.0", self.HistoryText)
-        # self.textbox.configure(state="disabled")
+        print(self.HistoryList)
+
+        self.HistoryFrame = customtkinter.CTkTextbox(self)
+        for i in range(len(self.HistoryList)) :
+            self.HistoryFrame.insert("0.0", text=self.HistoryList[i] + "\n")
+        self.HistoryFrame.grid(row=1, column=0, columnspan=2, padx=20, pady=20, sticky="nsew")
 
         self.lift()
         self.attributes('-topmost',True)
@@ -350,6 +371,7 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
             i = list(self.P_dataLoad.keys()).index(key)
             l = [i+1, self.names[i]]
             l += self.P_dataLoad[key]
+            l[2] = "Rp. {:,.2f}".format(l[2])
             self.TableList_P[i+1] = l
 
         print("Person Table List : \n\n", self.TableList_P)
@@ -370,6 +392,7 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         for i in self.curr_B_Data.keys():
             l = [i, self.Month[i-1]]
             l += self.curr_B_Data[i]
+            l[2] = "Rp. {:,.2f}".format(l[2])
             self.TableList_B[i] = l
 
         print("Month Table List : \n\n", self.TableList_B)
