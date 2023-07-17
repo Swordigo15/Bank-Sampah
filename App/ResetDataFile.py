@@ -56,3 +56,9 @@ file = open("Data Sampah.txt", "rb")
 yData_Load = pickle.load(file)
 print(yData_Load)
 file.close()
+
+History = []
+
+file = open("Riwayat.txt", "wb")
+pickle.dump(History, file)
+file.close()
