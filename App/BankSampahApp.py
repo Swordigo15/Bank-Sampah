@@ -1,4 +1,5 @@
 from tkinter import messagebox
+from tkinter import simpledialog
 import customtkinter
 from CTkTable import *
 
@@ -105,6 +106,8 @@ class App(customtkinter.CTk):
         self.trashTotal = [0] * 11
         # Total money for each trash
         self.trashMoney = [0] * 11
+        # Total money
+        self.total = 0
 
         self.totalLabel = customtkinter.CTkLabel(self, text="Total : Rp. 0", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.totalLabel.grid(row=3, column=1, padx=20, pady=(0,20), sticky="w")
@@ -151,66 +154,70 @@ class App(customtkinter.CTk):
 
             print("Person Total : ", self.total)
             if self.P_dataList.get(userName) == None:                   # if username not exist
-                self.P_dataList[userName] = [0] * 12                    # add new list to the P_dataList with username as key
+                
+                result = messagebox.askquestion("Nama Tidak Terdaftar", "Nama tidak terdaftar\nApakah anda ingin menambahkan {} Kedalam daftar?".format(userName))
+                if result == "yes":
+                    self.P_dataList[userName] = [0] * 12                    # add new list to the P_dataList with username as key
 
-            currDataList = [(self.P_dataList[userName][i] + inputDataList[i]) for i in range(12)]
-            self.P_dataList[userName] = currDataList
+                    currDataList = [(self.P_dataList[userName][i] + inputDataList[i]) for i in range(12)]
+                    self.P_dataList[userName] = currDataList
 
-            print("\nself.P_dataList :\n", self.P_dataList)
+                    print("\nself.P_dataList :\n", self.P_dataList)
 
-            # Save data
-            self.file = open("Data.txt", "wb")
-            pickle.dump(self.P_dataList, self.file)
-            self.file.close()
-            currDataList.clear()
+                    # Save data
+                    self.file = open("Data.txt", "wb")
+                    pickle.dump(self.P_dataList, self.file)
+                    self.file.close()
+                    currDataList.clear()
 
-            #! Monthly Recap Input #############################################################################################################################
+                    #! Monthly Recap Input #############################################################################################################################
 
-            currDataList = [(self.DataDict[yStr][mStr][i] + inputDataList[i]) for i in range(12)]
-            self.DataDict[yStr][mStr] = currDataList
+                    currDataList = [(self.DataDict[yStr][mStr][i] + inputDataList[i]) for i in range(12)]
+                    self.DataDict[yStr][mStr] = currDataList
 
-            print("self.DataDict :\n", self.DataDict)
+                    print("self.DataDict :\n", self.DataDict)
 
-            self.file = open("Data Sampah.txt", "wb")
-            pickle.dump(self.DataDict, self.file)
-            self.file.close()
+                    self.file = open("Data Sampah.txt", "wb")
+                    pickle.dump(self.DataDict, self.file)
+                    self.file.close()
 
-            #! History Input #############################################################################################################################
-            
-            self.HistoryList = []
+                    #! History Input #############################################################################################################################
+                    
+                    self.HistoryList = []
 
-            if os.stat("Data.txt").st_size != 0:
-                self.file = open("Riwayat.txt", "rb")
-                self.HistoryList = pickle.load(self.file)
-                self.file.close()
+                    if os.stat("Data.txt").st_size != 0:
+                        self.file = open("Riwayat.txt", "rb")
+                        self.HistoryList = pickle.load(self.file)
+                        self.file.close()
 
-            currHistoryText = "- {}/{}/{} {} {} BP:{}, GP:{}, K:{}, D:{}, KK:{}, KH:{}, KB:{}, G:{}, BK:{}, MJ:{}, L:{}".format(
-            dStr, mStr, yStr, userName, self.total, self.trashTotal[0], self.trashTotal[1], self.trashTotal[2], self.trashTotal[3],
-                                            self.trashTotal[4], self.trashTotal[5], self.trashTotal[6], self.trashTotal[7],
-                                            self.trashTotal[8], self.trashTotal[9], self.trashTotal[10])
-            print("currHistoryText :\n", currHistoryText)
+                    currHistoryText = "- {}/{}/{} {} {} BP:{}, GP:{}, K:{}, D:{}, KK:{}, KH:{}, KB:{}, G:{}, BK:{}, MJ:{}, L:{}".format(
+                    dStr, mStr, yStr, userName, self.total, self.trashTotal[0], self.trashTotal[1], self.trashTotal[2], self.trashTotal[3],
+                                                    self.trashTotal[4], self.trashTotal[5], self.trashTotal[6], self.trashTotal[7],
+                                                    self.trashTotal[8], self.trashTotal[9], self.trashTotal[10])
+                    print("currHistoryText :\n", currHistoryText)
 
-            self.HistoryList.append(currHistoryText)
-            print("HistoryList :\n", self.HistoryList)
+                    self.HistoryList.append(currHistoryText)
+                    print("HistoryList :\n", self.HistoryList)
 
-            self.file = open("Riwayat.txt", "wb")
-            pickle.dump(self.HistoryList, self.file)
-            self.file.close()
+                    self.file = open("Riwayat.txt", "wb")
+                    pickle.dump(self.HistoryList, self.file)
+                    self.file.close()
 
-            # Updating table
-            if self.DatabaseWindowVar != None:
-                self.DatabaseWindowVar.updateTable()
+                    # Updating table
+                    if self.DatabaseWindowVar != None:
+                        self.DatabaseWindowVar.updateTable()
 
-            self.nameEntry.delete(0, customtkinter.END)
-            for i in range(11):
-                self.S_Entry_list[i].delete(0, customtkinter.END)
+                    self.nameEntry.delete(0, customtkinter.END)
+                    for i in range(11):
+                        self.S_Entry_list[i].delete(0, customtkinter.END)
+                else:
+                    messagebox.showinfo("Info", "Nama tidak terdaftar!")
         else :
             messagebox.showwarning("Warning", "Tolong Masukkan Nama!")
 
     #! Change Total Label Text Func #############################################################################################################
 
     def changeTotal(self, *args):
-        self.total = 0
         # StringVar to float
         # amount of each trash
         for i in range(11):
@@ -327,11 +334,37 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
 
         self.updateTable()
 
+        self.RenameBtn = customtkinter.CTkButton(self, text="Rename", command=self.rename)
+        self.RenameBtn.grid(row=2, column=0, padx=20, pady=20, sticky="e")
+
         self.lift()
         self.attributes('-topmost', True)
         self.after_idle(self.attributes,'-topmost', False)
 
     #! Function ####################################################################################################################################
+
+    def rename(self):
+        if os.stat("Data.txt").st_size != 0:
+            self.file = open("Data.txt", "rb")
+            self.P_dataLoad = pickle.load(self.file)
+            self.file.close()
+
+        num = simpledialog.askinteger("Rename", "Nomor berapa yang ingin diganti?", parent=self)
+        newName = simpledialog.askstring("Rename", "Masukkan nama baru : ", parent=self)
+        for key in self.P_dataLoad.keys():
+            i = list(self.P_dataLoad.keys()).index(key)
+            if i == num-1:
+                self.temp = self.P_dataLoad[key]
+                self.P_dataLoad.pop(key)
+                break
+        
+        self.P_dataLoad[newName] = self.temp
+
+        self.file = open("Data.txt", "wb")
+        pickle.dump(self.P_dataLoad, self.file)
+        self.file.close()
+
+        self.updateTable()
 
     def updateTable(self):
         #! Table Data #############################################################################################################################
@@ -441,3 +474,6 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+
+# Build command for customTkinter
+# pyinstaller -F BooyooToDo.py --collect-all customtkinter -w
