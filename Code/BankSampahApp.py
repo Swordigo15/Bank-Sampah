@@ -29,14 +29,14 @@ class App(customtkinter.CTk):
         self.hasLogin = False
         self.DatabaseWindowVar = None
 
-        file = open("Data/Admin.txt", "rb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Admin.txt", "rb")
         self.LoginData = pickle.load(file)
         print(self.LoginData)
         file.close()
         #! UI #############################################################################################################################
         if self.hasLogin == False:
             self.title("Login")
-            self.iconbitmap("Logo.ico")
+            self.iconbitmap("../Bank Sampah App (SIBANKSAM)/Logo.ico")
 
             self.nameLbl = customtkinter.CTkLabel(self, text="Nama")
             self.passLbl = customtkinter.CTkLabel(self, text="Password")
@@ -68,7 +68,7 @@ class App(customtkinter.CTk):
             height= self.winfo_screenheight()
             self.title("SIBANKSAM")
             self.geometry(f"{width}x{height}+{-10}+{-5}")
-            self.iconbitmap("Logo.ico")
+            self.iconbitmap("../Bank Sampah App (SIBANKSAM)/Logo.ico")
             # self.state("zoomed")
             # self.attributes('-fullscreen', True)
 
@@ -102,7 +102,7 @@ class App(customtkinter.CTk):
             self.nameEntry = customtkinter.CTkEntry(self, placeholder_text="Masukkan Nama...", font=customtkinter.CTkFont(size=30))
             self.nameEntry.grid(row=1, column=1, columnspan=2, padx=20, pady=20, sticky="new")
 
-            file = open("Data/Tipe Sampah.txt", "rb")
+            file = open("../Bank Sampah App (SIBANKSAM)/Data/Tipe Sampah.txt", "rb")
             self.trashType = pickle.load(file)
             print(self.trashType)
 
@@ -144,7 +144,7 @@ class App(customtkinter.CTk):
             return
 
         self.LoginData = [self.nameLgn, self.passLgn]
-        file = open("Data/Admin.txt", "wb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Admin.txt", "wb")
         pickle.dump(self.LoginData, file)
         file.close()
 
@@ -158,18 +158,18 @@ class App(customtkinter.CTk):
         if priceTrash == None:
             return
 
-        file = open("Data/Data.txt", "rb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "rb")
         dataP = pickle.load(file)
         file.close()
 
         for key in dataP.keys():
             dataP[key] += [0]
 
-        file = open("Data/Data.txt", "wb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "wb")
         pickle.dump(dataP, file)
         file.close()
 
-        file = open("Data/Data Sampah.txt", "rb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt", "rb")
         dataB = pickle.load(file)
         file.close()
 
@@ -177,7 +177,7 @@ class App(customtkinter.CTk):
             # for key in dataB[yKey].keys():
             dataB[yKey][1] += [0]
 
-        file = open("Data/Data Sampah.txt", "wb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt", "wb")
         pickle.dump(dataB, file)
         file.close()
 
@@ -185,7 +185,7 @@ class App(customtkinter.CTk):
         self.trashType[1] += [priceTrash]
 
         print(self.trashType)
-        file = open("Data/Tipe Sampah.txt", "wb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Tipe Sampah.txt", "wb")
         pickle.dump(self.trashType, file)
         file.close()
 
@@ -251,13 +251,13 @@ class App(customtkinter.CTk):
             self.P_dataList = {}
 
             # Load
-            if os.stat("Data/Data.txt").st_size != 0:
-                self.file = open("Data/Data.txt", "rb")
+            if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data.txt").st_size != 0:
+                self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "rb")
                 self.P_dataList = pickle.load(self.file)
                 self.file.close()
                 print(self.P_dataList)
             else:
-                self.file = open("Data/Data.txt", "wb")
+                self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "wb")
                 pickle.dump(self.P_dataList, self.file)
                 self.file.close()
 
@@ -265,7 +265,7 @@ class App(customtkinter.CTk):
 
             # Load
             # laod year > month > data to mData
-            self.file = open("Data/Data Sampah.txt", "rb")
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt", "rb")
             self.DataDict = pickle.load(self.file)
             self.file.close()
 
@@ -295,7 +295,7 @@ class App(customtkinter.CTk):
             print("\nself.P_dataList :\n", self.P_dataList)
 
             # Save data
-            self.file = open("Data/Data.txt", "wb")
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "wb")
             pickle.dump(self.P_dataList, self.file)
             self.file.close()
             currDataList.clear()
@@ -321,20 +321,20 @@ class App(customtkinter.CTk):
             print("self.DataDict[2023] :\n", self.DataDict[2024])
             print("self.DataDict[2024] :\n", self.DataDict[2024])
 
-            self.file = open("Data/Data Sampah.txt", "wb")
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt", "wb")
             pickle.dump(self.DataDict, self.file)
             self.file.close()
 
             #! History Input #############################################################################################################################
-            file = open("Data/Tipe Sampah.txt", "rb")
+            file = open("../Bank Sampah App (SIBANKSAM)/Data/Tipe Sampah.txt", "rb")
             trashType = pickle.load(file)
             file.close()
 
             self.trashTypeArr = []
             self.HistoryList = []
 
-            if os.stat("Data/Data.txt").st_size != 0:
-                self.file = open("Data/Riwayat.txt", "rb")
+            if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data.txt").st_size != 0:
+                self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Riwayat.txt", "rb")
                 self.HistoryList = pickle.load(self.file)
                 self.file.close()
 
@@ -351,7 +351,7 @@ class App(customtkinter.CTk):
             self.HistoryList.append(currHistoryText)
             print("HistoryList :\n", self.HistoryList)
 
-            self.file = open("Data/Riwayat.txt", "wb")
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Riwayat.txt", "wb")
             pickle.dump(self.HistoryList, self.file)
             self.file.close()
 
@@ -410,8 +410,8 @@ class HistoryWindow(customtkinter.CTkToplevel):
         # configure window
         self.title("SIBANKSAM")
         self.geometry(f"{1100}x{580}")
-        self.iconbitmap("Logo.ico")
-        self.after(250, lambda: self.iconbitmap('Logo.ico'))
+        self.iconbitmap("../Bank Sampah App (SIBANKSAM)/Logo.ico")
+        self.after(250, lambda: self.iconbitmap('../Bank Sampah App (SIBANKSAM)/Logo.ico'))
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -421,8 +421,8 @@ class HistoryWindow(customtkinter.CTkToplevel):
 
         self.HistoryList = []
 
-        if os.stat("Data/Data.txt").st_size != 0:
-            self.file = open("Data/Riwayat.txt", "rb")
+        if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data.txt").st_size != 0:
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Riwayat.txt", "rb")
             self.HistoryList = pickle.load(self.file)
             self.file.close()
 
@@ -465,8 +465,8 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         # configure window
         self.title("SIBANKSAM")
         self.geometry(f"{1100}x{580}")
-        self.iconbitmap("Logo.ico")
-        self.after(250, lambda: self.iconbitmap('Logo.ico'))
+        self.iconbitmap("../Bank Sampah App (SIBANKSAM)/Logo.ico")
+        self.after(250, lambda: self.iconbitmap('../Bank Sampah App (SIBANKSAM)/Logo.ico'))
         # width= self.winfo_screenwidth()               
         # height= self.winfo_screenheight()
         # self.geometry(f"{width}x{height}+{0}+{0}")
@@ -503,8 +503,8 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
     #! Function ####################################################################################################################################
 
     def rename(self):
-        if os.stat("Data/Data.txt").st_size != 0:
-            self.file = open("Data/Data.txt", "rb")
+        if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data.txt").st_size != 0:
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "rb")
             self.P_dataLoad = pickle.load(self.file)
             self.file.close()
 
@@ -531,7 +531,7 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
                 self.P_dataLoad[newName][i] += self.temp[i]
 
 
-        self.file = open("Data/Data.txt", "wb")
+        self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "wb")
         pickle.dump(self.P_dataLoad, self.file)
         self.file.close()
 
@@ -610,7 +610,7 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         #! Table Data #############################################################################################################################
         # Load
         # Load person Data
-        file = open("Data/Tipe Sampah.txt", "rb")
+        file = open("../Bank Sampah App (SIBANKSAM)/Data/Tipe Sampah.txt", "rb")
         trashType = pickle.load(file)
         file.close()
 
@@ -624,14 +624,14 @@ class OrangDatabaseWindow(customtkinter.CTkToplevel):
         self.ListM = ["No.", "Bulan", "Tabungan"]
         self.ListM += self.trashTypeArr
 
-        if os.stat("Data/Data.txt").st_size != 0:
-            self.file = open("Data/Data.txt", "rb")
+        if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data.txt").st_size != 0:
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data.txt", "rb")
             self.P_dataLoad = pickle.load(self.file)
             self.file.close()
 
         # Load month Data
-        if os.stat("Data/Data Sampah.txt").st_size != 0:
-            self.file = open("Data/Data Sampah.txt", "rb")
+        if os.stat("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt").st_size != 0:
+            self.file = open("../Bank Sampah App (SIBANKSAM)/Data/Data Sampah.txt", "rb")
             self.B_dataLoad = pickle.load(self.file)
             print("Recap Monthly :\n", self.B_dataLoad)
             self.file.close()
@@ -717,4 +717,4 @@ if __name__ == "__main__":
     app.mainloop()
 
 # Build command for customTkinter
-# pyinstaller -F -i "Logo.ico" BankSampahApp.py --collect-all customtkinter -w
+# pyinstaller -F -i "Bank Sampah App (SIBANKSAM)/Logo.ico" Code/BankSampahApp.py --collect-all customtkinter -w
